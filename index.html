@@ -40,11 +40,11 @@
     <div id="rules-content" style="color:#444;font-size:16px;">
       <!-- ĐIỀN THỂ LỆ/HƯỚNG DẪN CỦA BẠN Ở ĐÂY -->
       <ul style="padding-left:18px;line-height:1.7;">
-        <li>Mỗi tài khoản chỉ được sử dụng cho 1 người, cấm chia sẻ tài khoản.</li>
-        <li>Xu chỉ được sử dụng để mua hàng trên hệ thống, không quy đổi ra tiền mặt.</li>
-        <li>Tham gia các chương trình, nhận link đặc biệt từ admin để nhận thưởng thêm Xu.</li>
-        <li>Không spam, gian lận, hoặc lợi dụng lỗ hổng hệ thống.</li>
-        <li>Liên hệ admin nếu cần hỗ trợ hoặc có thắc mắc.</li>
+        <li>Sau khi tạo tài khoản, tài khoản phải chờ duyệt trong khoảng 1 ngày mới được cấp link để xem quảng cáo.</li>
+        <li>Mỗi lần bấm vào xem quảng cáo và load hết trang sẽ được tính là 1 xu.</li>
+        <li>Xu sẽ được duyệt trong khoảng 1 ngày.</li>
+        <li>Sau khi đặt hàng, chờ hàng được giao trực tiếp trong game.</li>
+        <li>Liên hệ admin nếu cần hỗ trợ hoặc có thắc mắc qua discord ninjo217.</li>
       </ul>
     </div>
     <div style="text-align:center;margin-top:18px;">
@@ -71,7 +71,7 @@
   <div class="container">
     <div id="login-section" style="display:none;">
       <h2>Đăng nhập</h2>
-      <input type="text" id="username" placeholder="Tên đăng nhập" required>
+      <input type="text" id="username" placeholder="Tên Minecraft" required>
       <input type="password" id="password" placeholder="Mật khẩu" required>
       <button onclick="login()">Đăng nhập</button>
       <div style="margin-top:10px;">Chưa có tài khoản? <a href="#" onclick="showRegister();return false;">Đăng ký</a></div>
@@ -79,7 +79,7 @@
     </div>
     <div id="register-section" style="display:none;">
       <h2>Đăng ký</h2>
-      <input type="text" id="reg-username" placeholder="Tên đăng nhập" required>
+      <input type="text" id="reg-username" placeholder="Tên Minecraft" required>
       <input type="password" id="reg-password" placeholder="Mật khẩu" required>
       <button onclick="register()">Đăng ký</button>
       <div style="margin-top:10px;">Đã có tài khoản? <a href="#" onclick="showLogin();return false;">Đăng nhập</a></div>
@@ -184,11 +184,11 @@
     }
     // ----------- Sản phẩm mẫu --------------
     const products = [
-      { id: 1, name: 'Áo thun Unisex', price: 100, image: 'https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-lj6v3nwnr21b2a', description: 'Áo thun trẻ trung, đa năng.' },
-      { id: 2, name: 'Giày sneaker nam nữ', price: 350, image: 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls3v1dmmw8i1b4', description: 'Giày sneaker năng động.' },
-      { id: 3, name: 'Balo thời trang', price: 200, image: 'https://down-vn.img.susercontent.com/file/sg-11134201-7rbm0-lq5m49w7i8el6e', description: 'Balo đa năng, chống nước.' },
-      { id: 4, name: 'Tai nghe Bluetooth', price: 250, image: 'https://down-vn.img.susercontent.com/file/sg-11134201-7rbm0-lq5m49w7i8el6e', description: 'Tai nghe không dây.' },
-      { id: 5, name: 'Đồng hồ điện tử', price: 180, image: 'https://down-vn.img.susercontent.com/file/sg-11134201-7rbka-lr18w1n6b3wz25', description: 'Đồng hồ thời trang.' }
+      { id: 1, name: 'Gỗ', price: 100, image: 'https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-lj6v3nwnr21b2a', description: '.' },
+      { id: 2, name: 'Sắt', price: 350, image: 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls3v1dmmw8i1b4', description: '.' },
+      { id: 3, name: 'Vàng', price: 200, image: 'https://down-vn.img.susercontent.com/file/sg-11134201-7rbm0-lq5m49w7i8el6e', description: '.' },
+      { id: 4, name: 'Kim cương', price: 250, image: 'https://down-vn.img.susercontent.com/file/sg-11134201-7rbm0-lq5m49w7i8el6e', description: '.' },
+      { id: 5, name: 'Ngọc lục bảo', price: 180, image: 'https://down-vn.img.susercontent.com/file/sg-11134201-7rbka-lr18w1n6b3wz25', description: '.' }
     ];
 
     // ----------- User & Balance --------------
@@ -223,7 +223,7 @@
         msg.textContent = "Tên đăng nhập đã tồn tại!";
         return;
       }
-      users[username] = { password: password, balance: 1000 }; // Tặng 1000 Xu khi đăng ký
+      users[username] = { password: password, balance: 0 }; // Tặng 0 Xu khi đăng ký
       saveUsers(users);
       msg.textContent = "Đăng ký thành công! Bạn có thể đăng nhập.";
       setTimeout(showLogin, 1000);
