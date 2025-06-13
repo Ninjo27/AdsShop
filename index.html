@@ -483,24 +483,26 @@
     }
 // Hàm lưu link đặc biệt cho user
   function saveSpecialLink() {
-    const uname = document.getElementById('user-list-link').value;
-    const link = document.getElementById('special-link-input').value.trim();
-    let users = getUsers();
-    if (!uname || !link) {
-      document.getElementById('speciallink-msg').textContent = "Vui lòng chọn user và nhập link!";
-      return;
-    }
-    if (!/^https?:\/\/.+/i.test(link)) {
-      document.getElementById('speciallink-msg').textContent = "Link phải bắt đầu bằng http:// hoặc https://";
-      return;
-    }
-    if (!users[uname]) users[uname] = {};
-    users[uname].specialLink = link;
-    saveUsers(users);
-    document.getElementById('speciallink-msg').textContent = "Đã lưu link cho " + uname + "!";
-    setTimeout(()=>{document.getElementById('speciallink-msg').textContent='';},2000);
+  const uname = document.getElementById('user-list-link').value;
+  const link = document.getElementById('special-link-input').value.trim();
+  let users = getUsers();
+  if (!uname || !link) {
+    document.getElementById('speciallink-msg').textContent = "Vui lòng chọn user và nhập link!";
+    return;
   }
-    // Khi đăng nhập, cập nhật link nút cho user
+  if (!/^https?:\/\/.+/i.test(link)) {
+    document.getElementById('speciallink-msg').textContent = "Link phải bắt đầu bằng http:// hoặc https://";
+    return;
+  }
+  if (!users[uname]) users[uname] = {};
+  users[uname].specialLink = link;
+  saveUsers(users);
+  document.getElementById('speciallink-msg').textContent = "Đã lưu link cho " + uname + "!";
+  setTimeout(()=>{document.getElementById('speciallink-msg').textContent='';},2000);
+
+  // Nếu admin đang gán link cho chính mình, hoặc user vừa đăng nhập, cập nhật nút:
+  if (getCurrentUser() === uname) renderSpecialLinkBtn();
+}
   function renderSpecialLinkBtn() {
     const user = getCurrentUser();
     let users = getUsers();
@@ -515,9 +517,29 @@
 
   // Gọi khi khởi động/đăng nhập
   function init() {
-    // ... các hàm khác giữ nguyên ...
+  if (!getCurrentUser()) {
+    document.getElementById('shop-section').style.display = 'none';
+    document.getElementById('user-section').style.display = 'none';
+    document.getElementById('login-section').style.display = 'block';
+    document.getElementById('admin-section').style.display = 'none';
+    document.getElementById('stock-section').style.display = 'none';
+    document.getElementById('orders-section').style.display = 'none';
+    // Đảm bảo ẩn nút đặc biệt khi chưa đăng nhập
     renderSpecialLinkBtn();
+    return;
   }
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('register-section').style.display = 'none';
+  document.getElementById('shop-section').style.display = 'block';
+  document.getElementById('user-section').style.display = 'block';
+  renderBalance();
+  renderProducts();
+  renderCart();
+  renderAdminSection();
+  renderStockSection();
+  renderOrdersSection();
+  renderSpecialLinkBtn(); // ĐẢM BẢO luôn gọi dòng này!
+}
     // ----------- ADMIN: Xem đơn hàng --------------
     function renderOrdersSection() {
       const username = getCurrentUser();
