@@ -32,7 +32,26 @@
   </style>
 </head>
 <body>
-
+<!-- Modal hướng dẫn/thể lệ khi đăng nhập -->
+<div id="rules-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);z-index:10000;">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fffbe7;padding:32px 32px 24px 32px;min-width:340px;max-width:94vw;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,0.13);">
+    <button onclick="hideRulesModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:26px;line-height:20px;color:#d77c00;cursor:pointer;">×</button>
+    <h2 style="color:#ff9800;text-align:center;margin-top:0;">Thể lệ & Hướng dẫn sử dụng</h2>
+    <div id="rules-content" style="color:#444;font-size:16px;">
+      <!-- ĐIỀN THỂ LỆ/HƯỚNG DẪN CỦA BẠN Ở ĐÂY -->
+      <ul style="padding-left:18px;line-height:1.7;">
+        <li>Mỗi tài khoản chỉ được sử dụng cho 1 người, cấm chia sẻ tài khoản.</li>
+        <li>Xu chỉ được sử dụng để mua hàng trên hệ thống, không quy đổi ra tiền mặt.</li>
+        <li>Tham gia các chương trình, nhận link đặc biệt từ admin để nhận thưởng thêm Xu.</li>
+        <li>Không spam, gian lận, hoặc lợi dụng lỗ hổng hệ thống.</li>
+        <li>Liên hệ admin nếu cần hỗ trợ hoặc có thắc mắc.</li>
+      </ul>
+    </div>
+    <div style="text-align:center;margin-top:18px;">
+      <button onclick="hideRulesModal()" style="background:#ff9800;color:#fff;font-weight:bold;font-size:16px;border:none;padding:9px 32px;border-radius:7px;cursor:pointer;">Tôi đã hiểu</button>
+    </div>
+  </div>
+</div>
   <div class="header">
     <h1>AdsShop - Mua sắm bằng Xu</h1>
     <div id="user-section">
@@ -221,6 +240,8 @@
         return;
       }
       setCurrentUser(username);
+      sessionStorage.setItem('showRulesModal', '1'); // đánh dấu để show modal sau reload
+location.reload();
       location.reload();
     }
 
@@ -587,8 +608,21 @@ function markDelivered(orderIndex) {
       renderStockSection();
       renderOrdersSection();
       renderSpecialLinkBtn();
+      if (sessionStorage.getItem('showRulesModal') === '1' && !sessionStorage.getItem('rulesModalSeen')) {
+  showRulesModal();
+  sessionStorage.removeItem('showRulesModal');
+}
+sessionStorage.removeItem('rulesModalSeen');
     }
     init();
+    function showRulesModal() {
+  document.getElementById('rules-modal').style.display = 'block';
+}
+function hideRulesModal() {
+  document.getElementById('rules-modal').style.display = 'none';
+  // Lưu lại trạng thái đã xem thể lệ cho phiên này (tùy chọn)
+  sessionStorage.setItem('rulesModalSeen', '1');
+}
   </script>
 </body>
 </html>
