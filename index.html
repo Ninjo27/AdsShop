@@ -40,7 +40,6 @@
     <button onclick="hideRulesModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;font-size:26px;line-height:20px;color:#d77c00;cursor:pointer;">×</button>
     <h2 style="color:#ff9800;text-align:center;margin-top:0;">Thể lệ & Hướng dẫn sử dụng</h2>
     <div id="rules-content" style="color:#444;font-size:16px;">
-      <!-- ĐIỀN THỂ LỆ/HƯỚNG DẪN CỦA BẠN Ở ĐÂY -->
       <ul style="padding-left:18px;line-height:1.7;">
         <li>Sau khi tạo tài khoản, tài khoản phải chờ duyệt trong khoảng 1 ngày mới được cấp link để xem quảng cáo.</li>
         <li>Mỗi lần bấm vào xem quảng cáo và load hết trang sẽ được tính là 1 xu.</li>
@@ -56,12 +55,11 @@
 </div>
   <div class="header">
     <h1>AdsShop - Mua sắm bằng Xu</h1>
-    <div id="user-section">
+    <div id="user-section" style="display:none;">
       Xin chào <span id="username-display"></span> | Số dư: <span class="balance" id="balance"></span> Xu
       <button onclick="logout()" style="margin-left:20px;">Đăng xuất</button>
     </div>
   </div>
-  <!-- Nút đặc biệt ở phía trên cùng -->
   <div style="width:100%; background: #388e3c; text-align:center; padding: 12px 0;">
     <a id="special-link-btn"
       href="#"
@@ -87,7 +85,7 @@
       <div style="margin-top:10px;">Đã có tài khoản? <a href="#" onclick="showLogin();return false;">Đăng nhập</a></div>
       <div class="msg" id="register-msg"></div>
     </div>
-    <div id="shop-section">
+    <div id="shop-section" style="display:none;">
       <h2>Sản phẩm nổi bật</h2>
       <div class="products" id="products-list"></div>
       <div class="cart">
@@ -111,7 +109,6 @@
         <div class="msg" id="cart-msg"></div>
       </div>
     </div>
-
     <!-- Admin: Cấp xu cho user -->
     <div id="admin-section" style="display:none;">
       <h2>Cấp Xu cho người dùng</h2>
@@ -120,8 +117,6 @@
       <button onclick="addBalance()">Cấp Xu</button>
       <div class="msg" id="admin-msg"></div>
     </div>
-
-    <!-- Admin: Điều chỉnh tồn kho -->
     <div id="stock-section" style="display:none;">
       <h2>Quản lý tồn kho sản phẩm</h2>
       <table id="stock-list">
@@ -133,8 +128,6 @@
       </table>
       <div class="msg" id="stock-msg"></div>
     </div>
-    
-    <!-- Admin: Gán link cá nhân cho user -->
     <div id="speciallink-section" style="display:none; margin-top:30px;">
       <h2>Gán link đặc biệt cho người dùng</h2>
       <select id="user-list-link"></select>
@@ -142,8 +135,6 @@
       <button onclick="saveSpecialLink()">Lưu link</button>
       <div class="msg" id="speciallink-msg"></div>
     </div>
-    
-    <!-- Admin: Xem đơn hàng -->
     <div id="orders-section" style="display:none;">
       <h2>Đơn hàng của khách</h2>
       <table border="1" width="100%" id="orders-table">
@@ -190,6 +181,16 @@
       currentUser = null;
       sessionStorage.removeItem('currentUser');
       location.reload();
+    }
+
+    // Hiển thị form đăng nhập/đăng ký
+    function showLogin() {
+      document.getElementById('register-section').style.display = 'none';
+      document.getElementById('login-section').style.display = 'block';
+    }
+    function showRegister() {
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('register-section').style.display = 'block';
     }
 
     // Đăng ký
@@ -564,7 +565,7 @@
     }
 
     // ----------- Khởi động trang --------------
-   async function init() {
+    async function init() {
       let user = getCurrentUser();
       if (!user || !user.id || !user.username) {
         currentUser = null;
@@ -597,7 +598,11 @@
       }
       sessionStorage.removeItem('rulesModalSeen');
     }
-    init();
+
+    // Đợi DOM load xong mới khởi động (cực kỳ quan trọng)
+    window.onload = function() {
+      init();
+    };
 
     function showRulesModal() {
       document.getElementById('rules-modal').style.display = 'block';
