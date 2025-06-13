@@ -13,6 +13,8 @@
     .product img { width: 100%; border-radius: 6px; }
     .product-title { font-size: 17px; margin: 10px 0 5px; font-weight: bold; }
     .product-price { color: #ff5722; font-size: 16px; margin-bottom: 10px; }
+    .product-stock { color: #388e3c; font-size: 13px; margin-bottom: 5px; }
+    .out-of-stock { color: #d32f2f; font-weight: bold; }
     .add-cart-btn { background: #ff5722; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
     .add-cart-btn:disabled { background: #ccc; }
     .cart { margin-top: 40px; }
@@ -22,10 +24,11 @@
     .checkout-btn { margin-top: 15px; background: #388e3c; color: #fff; border: none; padding: 10px 30px; border-radius: 4px; cursor: pointer; font-size: 16px; }
     .checkout-btn:disabled { background: #ccc; }
     .msg { margin-top: 10px; font-size: 15px; color: #d32f2f; }
-    #admin-section, #orders-section { margin-top: 40px; background: #f4f4f4; border-radius: 8px; padding: 20px; }
+    #admin-section, #orders-section, #stock-section { margin-top: 40px; background: #f4f4f4; border-radius: 8px; padding: 20px; }
     #orders-table th, #orders-table td { padding: 8px 5px; }
     #orders-table th { background: #ffefcf; }
-    #admin-section h2, #orders-section h2 { margin-top: 0; }
+    #admin-section h2, #orders-section h2, #stock-section h2 { margin-top: 0; }
+    #stock-list input[type=number] { width: 60px; }
   </style>
 </head>
 <body>
@@ -87,6 +90,19 @@
       <div class="msg" id="admin-msg"></div>
     </div>
 
+    <!-- Admin: Điều chỉnh tồn kho -->
+    <div id="stock-section" style="display:none;">
+      <h2>Quản lý tồn kho sản phẩm</h2>
+      <table id="stock-list">
+        <tr>
+          <th>Sản phẩm</th>
+          <th>Tồn kho hiện tại</th>
+          <th>Điều chỉnh</th>
+        </tr>
+      </table>
+      <div class="msg" id="stock-msg"></div>
+    </div>
+
     <!-- Admin: Xem đơn hàng -->
     <div id="orders-section" style="display:none;">
       <h2>Đơn hàng của khách</h2>
@@ -96,7 +112,39 @@
     </div>
   </div>
   <script>
-    // Sản phẩm mẫu
+    // ----------- Quản lý sản phẩm và tồn kho --------------
+    function getProductStocks() {
+      let stocks = JSON.parse(localStorage.getItem('product_stocks') || 'null');
+      if (!stocks) {
+        // Giá trị mặc định nếu chưa có
+        stocks = [
+          { id: 1, stock: 10 },
+          { id: 2, stock: 8 },
+          { id: 3, stock: 15 },
+          { id: 4, stock: 12 },
+          { id: 5, stock: 20 }
+        ];
+        localStorage.setItem('product_stocks', JSON.stringify(stocks));
+      }
+      return stocks;
+    }
+    function setProductStocks(stocks) {
+      localStorage.setItem('product_stocks', JSON.stringify(stocks));
+    }
+    function getStockById(pid) {
+      const stocks = getProductStocks();
+      const found = stocks.find(x => x.id === pid);
+      return found ? found.stock : 0;
+    }
+    function setStockById(pid, newStock) {
+      const stocks = getProductStocks();
+      const idx = stocks.findIndex(x => x.id === pid);
+      if(idx !== -1) {
+        stocks[idx].stock = newStock;
+        setProductStocks(stocks);
+      }
+    }
+    // ----------- Sản phẩm mẫu --------------
     const products = [
       { id: 1, name: 'Áo thun Unisex', price: 100, image: 'https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-lj6v3nwnr21b2a', description: 'Áo thun trẻ trung, đa năng.' },
       { id: 2, name: 'Giày sneaker nam nữ', price: 350, image: 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-ls3v1dmmw8i1b4', description: 'Giày sneaker năng động.' },
@@ -105,7 +153,7 @@
       { id: 5, name: 'Đồng hồ điện tử', price: 180, image: 'https://down-vn.img.susercontent.com/file/sg-11134201-7rbka-lr18w1n6b3wz25', description: 'Đồng hồ thời trang.' }
     ];
 
-    // Lưu trữ user và số dư bằng localStorage
+    // ----------- User & Balance --------------
     function getUsers() {
       return JSON.parse(localStorage.getItem('users') || '{}');
     }
@@ -167,24 +215,32 @@
       document.getElementById('register-section').style.display = 'block';
     }
 
-    // Render sản phẩm
+    // ----------- Render sản phẩm (có kiểm tra tồn kho) --------------
     function renderProducts() {
+      const stocks = getProductStocks();
       const list = document.getElementById('products-list');
       list.innerHTML = '';
       products.forEach(p => {
+        const found = stocks.find(x => x.id === p.id);
+        const stock = found ? found.stock : 0;
+        let stockText = stock > 0
+          ? `<span class="product-stock">Còn lại: ${stock}</span>`
+          : `<span class="out-of-stock">Hết hàng</span>`;
+        let btnDisabled = stock <= 0 ? 'disabled' : '';
         list.innerHTML += `
           <div class="product">
             <img src="${p.image}" alt="${p.name}">
             <div class="product-title">${p.name}</div>
             <div class="product-price">${p.price} Xu</div>
+            ${stockText}
             <div style="font-size:13px; color:#666;margin-bottom:6px">${p.description}</div>
-            <button class="add-cart-btn" onclick="addToCart(${p.id})">Thêm vào giỏ</button>
+            <button class="add-cart-btn" onclick="addToCart(${p.id})" ${btnDisabled}>${stock > 0 ? 'Thêm vào giỏ' : 'Hết hàng'}</button>
           </div>
         `;
       });
     }
 
-    // Giỏ hàng (lưu theo từng user)
+    // ----------- Giỏ hàng (lưu theo từng user) --------------
     function getCart() {
       if (!getCurrentUser()) return [];
       return JSON.parse(localStorage.getItem('cart_' + getCurrentUser()) || '[]');
@@ -195,8 +251,14 @@
     }
 
     function addToCart(productId) {
+      const stock = getStockById(productId);
       let cart = getCart();
       let item = cart.find(i => i.id === productId);
+      let currentQty = item ? item.qty : 0;
+      if (currentQty + 1 > stock) {
+        alert("Không thể thêm vượt quá số lượng còn lại trong kho!");
+        return;
+      }
       if (item) item.qty++;
       else cart.push({ id: productId, qty: 1 });
       saveCart(cart);
@@ -210,7 +272,21 @@
       renderCart();
     }
 
-    // Render giỏ hàng
+    function changeQty(index, qty) {
+      let cart = getCart();
+      let pid = cart[index].id;
+      let stock = getStockById(pid);
+      qty = Math.max(1, parseInt(qty));
+      if (qty > stock) {
+        alert("Vượt quá số lượng còn lại trong kho!");
+        qty = stock;
+      }
+      cart[index].qty = qty;
+      saveCart(cart);
+      renderCart();
+    }
+
+    // ----------- Render giỏ hàng (kiểm tra tồn kho cho từng dòng) --------------
     function renderCart() {
       const tbody = document.querySelector('#cart-table tbody');
       const totalSpan = document.getElementById('cart-total');
@@ -219,6 +295,12 @@
       let total = 0;
       cart.forEach((item, idx) => {
         const prod = products.find(p => p.id === item.id);
+        const stock = getStockById(item.id);
+        // Đảm bảo không vượt quá tồn kho
+        if (item.qty > stock) {
+          item.qty = stock;
+          saveCart(cart);
+        }
         const line = prod.price * item.qty;
         total += line;
         tbody.innerHTML += `
@@ -226,7 +308,7 @@
             <td>${prod.name}</td>
             <td>${prod.price} Xu</td>
             <td>
-              <input type="number" value="${item.qty}" min="1" style="width:50px" onchange="changeQty(${idx}, this.value)">
+              <input type="number" value="${item.qty}" min="1" max="${stock}" style="width:50px" onchange="changeQty(${idx}, this.value)">
             </td>
             <td>${line} Xu</td>
             <td><button onclick="removeCartItem(${idx})">Xóa</button></td>
@@ -236,31 +318,31 @@
       totalSpan.textContent = total;
       document.getElementById('checkout-btn').disabled = (cart.length === 0);
     }
-    function changeQty(index, qty) {
-      let cart = getCart();
-      qty = Math.max(1, parseInt(qty));
-      cart[index].qty = qty;
-      saveCart(cart);
-      renderCart();
-    }
 
-    // Lưu đơn hàng (chỉ khi thanh toán thành công)
+    // ----------- Đơn hàng & Thanh toán (trừ tồn kho) --------------
     function saveOrder(order) {
       let orders = JSON.parse(localStorage.getItem('orders') || '[]');
       orders.push(order);
       localStorage.setItem('orders', JSON.stringify(orders));
     }
 
-    // Thanh toán
     function checkout() {
       const cart = getCart();
       if (cart.length === 0) return;
       let users = getUsers();
       const username = getCurrentUser();
       let user = users[username];
+      let stocks = getProductStocks();
       let sum = 0;
+      // Kiểm tra tồn kho
       for (let item of cart) {
         let prod = products.find(p => p.id === item.id);
+        let stockObj = stocks.find(s=>s.id===item.id);
+        let stock = stockObj ? stockObj.stock : 0;
+        if (item.qty > stock) {
+          document.getElementById('cart-msg').textContent = `Sản phẩm "${prod.name}" chỉ còn lại ${stock} cái!`;
+          return;
+        }
         sum += prod.price * item.qty;
       }
       const msg = document.getElementById('cart-msg');
@@ -268,7 +350,13 @@
         msg.textContent = 'Không đủ Xu để thanh toán!';
         return;
       }
-      // Lưu đơn hàng vào hệ thống
+      // Trừ tồn kho
+      cart.forEach(item => {
+        let stockObj = stocks.find(s=>s.id===item.id);
+        if (stockObj) stockObj.stock -= item.qty;
+      });
+      setProductStocks(stocks);
+      // Lưu đơn hàng
       saveOrder({
         username: username,
         items: cart,
@@ -281,13 +369,15 @@
       saveCart([]);
       renderBalance();
       renderCart();
+      renderProducts();
+      renderStockSection();
       renderOrdersSection(); // cập nhật bảng đơn hàng nếu là admin
       msg.style.color = "#388e3c";
       msg.textContent = 'Thanh toán thành công! Cảm ơn bạn đã mua hàng.';
       setTimeout(()=>{msg.textContent='';msg.style.color='#d32f2f';},3000);
     }
 
-    // Render số dư và tên user
+    // ----------- Render số dư và tên user --------------
     function renderBalance() {
       const username = getCurrentUser();
       if (!username) return;
@@ -296,7 +386,7 @@
       document.getElementById('balance').textContent = users[username].balance;
     }
 
-    // ---------------- ADMIN PHẦN ----------------
+    // ----------- ADMIN: Cấp xu --------------
     function renderAdminSection() {
       const username = getCurrentUser();
       if (username !== 'admin') {
@@ -326,7 +416,48 @@
       setTimeout(()=>{document.getElementById('admin-msg').textContent='';},2000);
     }
 
-    // Xem đơn hàng
+    // ----------- ADMIN: Điều chỉnh tồn kho --------------
+    function renderStockSection() {
+      const username = getCurrentUser();
+      if (username !== 'admin') {
+        document.getElementById('stock-section').style.display = 'none';
+        return;
+      }
+      document.getElementById('stock-section').style.display = 'block';
+      const stocks = getProductStocks();
+      let table = document.getElementById('stock-list');
+      table.innerHTML = `<tr>
+        <th>Sản phẩm</th>
+        <th>Tồn kho hiện tại</th>
+        <th>Điều chỉnh</th>
+      </tr>`;
+      products.forEach(p => {
+        const stockObj = stocks.find(x => x.id === p.id);
+        table.innerHTML += `
+          <tr>
+            <td>${p.name}</td>
+            <td id="stock-now-${p.id}">${stockObj ? stockObj.stock : 0}</td>
+            <td>
+              <input type="number" id="stock-input-${p.id}" min="0" value="${stockObj ? stockObj.stock : 0}">
+              <button onclick="updateStock(${p.id})">Cập nhật</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+    function updateStock(pid) {
+      let input = document.getElementById('stock-input-' + pid);
+      let value = parseInt(input.value);
+      if (isNaN(value) || value < 0) value = 0;
+      setStockById(pid, value);
+      document.getElementById('stock-now-' + pid).textContent = value;
+      document.getElementById('stock-msg').textContent = "Đã cập nhật tồn kho!";
+      renderProducts();
+      renderCart();
+      setTimeout(()=>{document.getElementById('stock-msg').textContent='';},2000);
+    }
+
+    // ----------- ADMIN: Xem đơn hàng --------------
     function renderOrdersSection() {
       const username = getCurrentUser();
       if (username !== 'admin') {
@@ -336,7 +467,6 @@
       document.getElementById('orders-section').style.display = 'block';
       let orders = JSON.parse(localStorage.getItem('orders') || '[]');
       let table = document.getElementById('orders-table');
-      // Xóa các dòng cũ (giữ lại header)
       table.innerHTML = `<tr><th>Người mua</th><th>Sản phẩm</th><th>Tổng Xu</th><th>Thời gian</th></tr>`;
       orders.forEach(order => {
         let items = order.items.map(it => {
@@ -352,13 +482,14 @@
       });
     }
 
-    // Khởi động trang
+    // ----------- Khởi động trang --------------
     function init() {
       if (!getCurrentUser()) {
         document.getElementById('shop-section').style.display = 'none';
         document.getElementById('user-section').style.display = 'none';
         document.getElementById('login-section').style.display = 'block';
         document.getElementById('admin-section').style.display = 'none';
+        document.getElementById('stock-section').style.display = 'none';
         document.getElementById('orders-section').style.display = 'none';
         return;
       }
@@ -370,6 +501,7 @@
       renderProducts();
       renderCart();
       renderAdminSection();
+      renderStockSection();
       renderOrdersSection();
     }
     init();
