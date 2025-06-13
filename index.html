@@ -153,8 +153,8 @@
   </div>
   <script>
     // ----- Supabase config -----
-    const SUPABASE_URL = 'https://ibylievcmlzzyzkihzfo.supabase.co'; // Thay bằng Project URL của bạn
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlieWxpZXZjbWx6enl6a2loemZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3OTQ4OTYsImV4cCI6MjA2NTM3MDg5Nn0.iJNGvjly4q5M43Xd5uJ8A0OZT7PSrbQWcuhas9WWEiM'; // Thay bằng anon public key của bạn
+    const SUPABASE_URL = 'https://ibylievcmlzzyzkihzfo.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlieWxpZXZjbWx6enl6a2loemZvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3OTQ4OTYsImV4cCI6MjA2NTM3MDg5Nn0.iJNGvjly4q5M43Xd5uJ8A0OZT7PSrbQWcuhas9WWEiM';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ----------- Sản phẩm mẫu --------------
@@ -167,21 +167,27 @@
 
     // ----------- User & Balance --------------
     let currentUser = null;
-    let userData = null;
 
     function setCurrentUser(user) {
       currentUser = user;
       sessionStorage.setItem('currentUser', JSON.stringify(user));
     }
     function getCurrentUser() {
-      if (currentUser) return currentUser;
+      if (currentUser && currentUser.id && currentUser.username) return currentUser;
       const u = sessionStorage.getItem('currentUser');
-      if (u) currentUser = JSON.parse(u);
-      return currentUser;
+      if (u) {
+        try {
+          const userObj = JSON.parse(u);
+          if (userObj && userObj.id && userObj.username) {
+            currentUser = userObj;
+            return currentUser;
+          }
+        } catch (e) {}
+      }
+      return null;
     }
     function logout() {
       currentUser = null;
-      userData = null;
       sessionStorage.removeItem('currentUser');
       location.reload();
     }
@@ -193,18 +199,21 @@
       const msg = document.getElementById('register-msg');
       if (!username || !password) {
         msg.textContent = "Vui lòng nhập đầy đủ thông tin!";
+        sessionStorage.removeItem('currentUser');
         return;
       }
       // Kiểm tra tồn tại
       const { data, error } = await supabase.from('users').select('id').eq('username', username).single();
       if (data) {
         msg.textContent = "Tên đăng nhập đã tồn tại!";
+        sessionStorage.removeItem('currentUser');
         return;
       }
       // Tạo user mới
       const { error: err } = await supabase.from('users').insert([{ username, password, balance: 0 }]);
       if (err) {
         msg.textContent = "Đăng ký thất bại: " + err.message;
+        sessionStorage.removeItem('currentUser');
         return;
       }
       msg.textContent = "Đăng ký thành công! Bạn có thể đăng nhập.";
@@ -217,8 +226,9 @@
       const password = document.getElementById('password').value;
       const msg = document.getElementById('login-msg');
       const { data, error } = await supabase.from('users').select('*').eq('username', username).eq('password', password).single();
-      if (!data) {
+      if (!data || !data.id || !data.username) {
         msg.textContent = "Sai tên đăng nhập hoặc mật khẩu!";
+        sessionStorage.removeItem('currentUser');
         return;
       }
       setCurrentUser(data);
@@ -250,12 +260,14 @@
 
     // ----------- Giỏ hàng (lưu theo từng user - local) --------------
     function getCart() {
-      if (!getCurrentUser()) return [];
-      return JSON.parse(localStorage.getItem('cart_' + getCurrentUser().id) || '[]');
+      let user = getCurrentUser();
+      if (!user) return [];
+      return JSON.parse(localStorage.getItem('cart_' + user.id) || '[]');
     }
     function saveCart(cart) {
-      if (!getCurrentUser()) return;
-      localStorage.setItem('cart_' + getCurrentUser().id, JSON.stringify(cart));
+      let user = getCurrentUser();
+      if (!user) return;
+      localStorage.setItem('cart_' + user.id, JSON.stringify(cart));
     }
 
     function addToCart(productId) {
@@ -303,6 +315,7 @@
       let total = 0;
       cart.forEach((item, idx) => {
         const prod = products.find(p => p.id === item.id);
+        if (!prod) return;
         // Đảm bảo không vượt quá tồn kho
         if (item.qty > prod.stock) {
           item.qty = prod.stock;
@@ -486,13 +499,11 @@
       await supabase.from('users').update({ special_link: link }).eq('id', uid);
       document.getElementById('speciallink-msg').textContent = "Đã lưu link!";
       setTimeout(()=>{document.getElementById('speciallink-msg').textContent='';},2000);
-      // Nếu admin đang gán link cho chính mình, hoặc user vừa đăng nhập, cập nhật nút:
       if (getCurrentUser() && getCurrentUser().id === uid) renderSpecialLinkBtn();
     }
     async function renderSpecialLinkBtn() {
       const user = getCurrentUser();
       if (!user || !user.special_link) {
-        // Lấy lại user data để kiểm tra nếu vừa cập nhật link
         const { data } = await supabase.from('users').select('special_link').eq('id', user?.id).single();
         if (!data || !data.special_link) {
           document.getElementById('special-link-btn').style.display = "none";
@@ -514,7 +525,6 @@
         return;
       }
       document.getElementById('orders-section').style.display = 'block';
-      // Lấy tất cả orders
       const { data: orders } = await supabase
         .from('orders')
         .select('*, users(username)')
@@ -529,7 +539,6 @@
         <th>Đánh dấu đã giao</th>
       </tr>`;
       for (let order of orders) {
-        // Lấy order_items
         const { data: items } = await supabase
           .from('order_items')
           .select('qty, products(name)')
@@ -556,9 +565,10 @@
 
     // ----------- Khởi động trang --------------
     async function init() {
-      // Lấy thông tin user từ sessionStorage nếu có
-      getCurrentUser();
-      if (!currentUser) {
+      let user = getCurrentUser();
+      if (!user || !user.id || !user.username) {
+        currentUser = null;
+        sessionStorage.removeItem('currentUser');
         document.getElementById('shop-section').style.display = 'none';
         document.getElementById('user-section').style.display = 'none';
         document.getElementById('login-section').style.display = 'block';
