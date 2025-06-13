@@ -32,6 +32,15 @@
   </style>
 </head>
 <body>
+  <!-- Nút đặc biệt ở phía trên cùng -->
+  <div style="width:100%; background: #388e3c; text-align:center; padding: 12px 0;">
+    <a id="special-link-btn"
+      href="#"
+      target="_blank"
+      style="display:none; background:#fff; color:#388e3c; font-weight:bold; font-size:18px; padding:10px 30px; border-radius:6px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.09); transition:background 0.2s;">
+      🔗 Xem quảng cáo và nhận xu
+    </a>
+  </div>
   <div class="header">
     <h1>AdsShop - Mua sắm bằng Xu</h1>
     <div id="user-section">
@@ -39,15 +48,7 @@
       <button onclick="logout()" style="margin-left:20px;">Đăng xuất</button>
     </div>
   </div>
-  <!-- Nút đặc biệt ở phía trên cùng -->
-<div style="width:100%; background: #388e3c; text-align:center; padding: 12px 0;">
-  <a id="special-link-btn"
-     href="#"
-     target="_blank"
-     style="display:inline-block; background:#fff; color:#388e3c; font-weight:bold; font-size:18px; padding:10px 30px; border-radius:6px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.09); transition:background 0.2s; display:none">
-    🔗 Xem quảng cáo và nhận xu
-  </a>
-</div>
+
   <div class="container">
     <div id="login-section" style="display:none;">
       <h2>Đăng nhập</h2>
@@ -112,14 +113,14 @@
       <div class="msg" id="stock-msg"></div>
     </div>
     
-<!-- Admin: Gán link cá nhân cho user -->
-<div id="speciallink-section" style="display:none; margin-top:30px;">
-  <h2>Gán link đặc biệt cho người dùng</h2>
-  <select id="user-list-link"></select>
-  <input type="text" id="special-link-input" placeholder="https://your-link.com/user">
-  <button onclick="saveSpecialLink()">Lưu link</button>
-  <div class="msg" id="speciallink-msg"></div>
-</div>
+    <!-- Admin: Gán link cá nhân cho user -->
+    <div id="speciallink-section" style="display:none; margin-top:30px;">
+      <h2>Gán link đặc biệt cho người dùng</h2>
+      <select id="user-list-link"></select>
+      <input type="text" id="special-link-input" placeholder="https://your-link.com/user">
+      <button onclick="saveSpecialLink()">Lưu link</button>
+      <div class="msg" id="speciallink-msg"></div>
+    </div>
     
     <!-- Admin: Xem đơn hàng -->
     <div id="orders-section" style="display:none;">
@@ -406,26 +407,26 @@
 
     // ----------- ADMIN: Cấp xu --------------
     function renderAdminSection() {
-  const username = getCurrentUser();
-  if (username !== 'admin') {
-    document.getElementById('admin-section').style.display = 'none';
-    document.getElementById('speciallink-section').style.display = 'none';
-    return;
-  }
-  document.getElementById('admin-section').style.display = 'block';
-  document.getElementById('speciallink-section').style.display = 'block';
-  let users = getUsers();
-  let select = document.getElementById('user-list');
-  let selectLink = document.getElementById('user-list-link');
-  select.innerHTML = '';
-  selectLink.innerHTML = '';
-  Object.keys(users).forEach(u => {
-    if (u !== 'admin') {
-      select.innerHTML += `<option value="${u}">${u}</option>`;
-      selectLink.innerHTML += `<option value="${u}">${u}</option>`;
+      const username = getCurrentUser();
+      if (username !== 'admin') {
+        document.getElementById('admin-section').style.display = 'none';
+        document.getElementById('speciallink-section').style.display = 'none';
+        return;
+      }
+      document.getElementById('admin-section').style.display = 'block';
+      document.getElementById('speciallink-section').style.display = 'block';
+      let users = getUsers();
+      let select = document.getElementById('user-list');
+      let selectLink = document.getElementById('user-list-link');
+      select.innerHTML = '';
+      selectLink.innerHTML = '';
+      Object.keys(users).forEach(u => {
+        if (u !== 'admin') {
+          select.innerHTML += `<option value="${u}">${u}</option>`;
+          selectLink.innerHTML += `<option value="${u}">${u}</option>`;
+        }
+      });
     }
-  });
-}
     function addBalance() {
       let users = getUsers();
       let target = document.getElementById('user-list').value;
@@ -481,65 +482,41 @@
       renderCart();
       setTimeout(()=>{document.getElementById('stock-msg').textContent='';},2000);
     }
-// Hàm lưu link đặc biệt cho user
-  function saveSpecialLink() {
-  const uname = document.getElementById('user-list-link').value;
-  const link = document.getElementById('special-link-input').value.trim();
-  let users = getUsers();
-  if (!uname || !link) {
-    document.getElementById('speciallink-msg').textContent = "Vui lòng chọn user và nhập link!";
-    return;
-  }
-  if (!/^https?:\/\/.+/i.test(link)) {
-    document.getElementById('speciallink-msg').textContent = "Link phải bắt đầu bằng http:// hoặc https://";
-    return;
-  }
-  if (!users[uname]) users[uname] = {};
-  users[uname].specialLink = link;
-  saveUsers(users);
-  document.getElementById('speciallink-msg').textContent = "Đã lưu link cho " + uname + "!";
-  setTimeout(()=>{document.getElementById('speciallink-msg').textContent='';},2000);
 
-  // Nếu admin đang gán link cho chính mình, hoặc user vừa đăng nhập, cập nhật nút:
-  if (getCurrentUser() === uname) renderSpecialLinkBtn();
-}
-  function renderSpecialLinkBtn() {
-    const user = getCurrentUser();
-    let users = getUsers();
-    let btn = document.getElementById('special-link-btn');
-    if (!user || !users[user] || !users[user].specialLink) {
-      btn.style.display = "none";
-      return;
+    // ----------- ADMIN: Gán link đặc biệt --------------
+    function saveSpecialLink() {
+      const uname = document.getElementById('user-list-link').value;
+      const link = document.getElementById('special-link-input').value.trim();
+      let users = getUsers();
+      if (!uname || !link) {
+        document.getElementById('speciallink-msg').textContent = "Vui lòng chọn user và nhập link!";
+        return;
+      }
+      if (!/^https?:\/\/.+/i.test(link)) {
+        document.getElementById('speciallink-msg').textContent = "Link phải bắt đầu bằng http:// hoặc https://";
+        return;
+      }
+      if (!users[uname]) users[uname] = {};
+      users[uname].specialLink = link;
+      saveUsers(users);
+      document.getElementById('speciallink-msg').textContent = "Đã lưu link cho " + uname + "!";
+      setTimeout(()=>{document.getElementById('speciallink-msg').textContent='';},2000);
+
+      // Nếu admin đang gán link cho chính mình, hoặc user vừa đăng nhập, cập nhật nút:
+      if (getCurrentUser() === uname) renderSpecialLinkBtn();
     }
-    btn.href = users[user].specialLink;
-    btn.style.display = "inline-block";
-  }
+    function renderSpecialLinkBtn() {
+      const user = getCurrentUser();
+      let users = getUsers();
+      let btn = document.getElementById('special-link-btn');
+      if (!user || !users[user] || !users[user].specialLink) {
+        btn.style.display = "none";
+        return;
+      }
+      btn.href = users[user].specialLink;
+      btn.style.display = "inline-block";
+    }
 
-  // Gọi khi khởi động/đăng nhập
-  function init() {
-  if (!getCurrentUser()) {
-    document.getElementById('shop-section').style.display = 'none';
-    document.getElementById('user-section').style.display = 'none';
-    document.getElementById('login-section').style.display = 'block';
-    document.getElementById('admin-section').style.display = 'none';
-    document.getElementById('stock-section').style.display = 'none';
-    document.getElementById('orders-section').style.display = 'none';
-    // Đảm bảo ẩn nút đặc biệt khi chưa đăng nhập
-    renderSpecialLinkBtn();
-    return;
-  }
-  document.getElementById('login-section').style.display = 'none';
-  document.getElementById('register-section').style.display = 'none';
-  document.getElementById('shop-section').style.display = 'block';
-  document.getElementById('user-section').style.display = 'block';
-  renderBalance();
-  renderProducts();
-  renderCart();
-  renderAdminSection();
-  renderStockSection();
-  renderOrdersSection();
-  renderSpecialLinkBtn(); // ĐẢM BẢO luôn gọi dòng này!
-}
     // ----------- ADMIN: Xem đơn hàng --------------
     function renderOrdersSection() {
       const username = getCurrentUser();
@@ -574,6 +551,7 @@
         document.getElementById('admin-section').style.display = 'none';
         document.getElementById('stock-section').style.display = 'none';
         document.getElementById('orders-section').style.display = 'none';
+        renderSpecialLinkBtn();
         return;
       }
       document.getElementById('login-section').style.display = 'none';
@@ -586,6 +564,7 @@
       renderAdminSection();
       renderStockSection();
       renderOrdersSection();
+      renderSpecialLinkBtn();
     }
     init();
   </script>
