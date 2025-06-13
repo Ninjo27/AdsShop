@@ -564,7 +564,7 @@
     }
 
     // ----------- Khởi động trang --------------
-    async function init() {
+   async function init() {
       let user = getCurrentUser();
       if (!user || !user.id || !user.username) {
         currentUser = null;
@@ -572,6 +572,7 @@
         document.getElementById('shop-section').style.display = 'none';
         document.getElementById('user-section').style.display = 'none';
         document.getElementById('login-section').style.display = 'block';
+        document.getElementById('register-section').style.display = 'none';
         document.getElementById('admin-section').style.display = 'none';
         document.getElementById('stock-section').style.display = 'none';
         document.getElementById('orders-section').style.display = 'none';
