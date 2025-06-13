@@ -32,8 +32,23 @@
   </style>
 </head>
 <body>
- 
 
+  <div class="header">
+    <h1>AdsShop - Mua sắm bằng Xu</h1>
+    <div id="user-section">
+      Xin chào <span id="username-display"></span> | Số dư: <span class="balance" id="balance"></span> Xu
+      <button onclick="logout()" style="margin-left:20px;">Đăng xuất</button>
+    </div>
+  </div>
+  <!-- Nút đặc biệt ở phía trên cùng -->
+  <div style="width:100%; background: #388e3c; text-align:center; padding: 12px 0;">
+    <a id="special-link-btn"
+      href="#"
+      target="_blank"
+      style="display:none; background:#fff; color:#388e3c; font-weight:bold; font-size:18px; padding:10px 30px; border-radius:6px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.09); transition:background 0.2s;">
+      🔗 Xem quảng cáo và nhận xu
+    </a>
+  </div>
   <div class="container">
     <div id="login-section" style="display:none;">
       <h2>Đăng nhập</h2>
@@ -51,22 +66,6 @@
       <div style="margin-top:10px;">Đã có tài khoản? <a href="#" onclick="showLogin();return false;">Đăng nhập</a></div>
       <div class="msg" id="register-msg"></div>
     </div>
-     <!-- Nút đặc biệt ở phía trên cùng -->
-  <div style="width:100%; background: #388e3c; text-align:center; padding: 12px 0;">
-    <a id="special-link-btn"
-      href="#"
-      target="_blank"
-      style="display:none; background:#fff; color:#388e3c; font-weight:bold; font-size:18px; padding:10px 30px; border-radius:6px; text-decoration:none; box-shadow:0 2px 6px rgba(0,0,0,0.09); transition:background 0.2s;">
-      🔗 Xem quảng cáo và nhận xu
-    </a>
-  </div>
-  <div class="header">
-    <h1>AdsShop - Mua sắm bằng Xu</h1>
-    <div id="user-section">
-      Xin chào <span id="username-display"></span> | Số dư: <span class="balance" id="balance"></span> Xu
-      <button onclick="logout()" style="margin-left:20px;">Đăng xuất</button>
-    </div>
-  </div>
     <div id="shop-section">
       <h2>Sản phẩm nổi bật</h2>
       <div class="products" id="products-list"></div>
